@@ -7,7 +7,9 @@ import {ObjectUtils} from '../utils/objectutils';
 import { FilterUtils } from '../filterconstraints/filterutils';
 
 @Component({
+    // tslint:disable-next-line: component-selector
     selector: 'p-pickList',
+    // tslint:disable-next-line: max-line-length
     template: `
         <div [class]="styleClass" [ngStyle]="style" [ngClass]="{'ui-picklist ui-widget ui-helper-clearfix': true,'ui-picklist-responsive': responsive}">
             <div class="ui-picklist-source-controls ui-picklist-buttons" *ngIf="showSourceControls">
@@ -28,7 +30,7 @@ import { FilterUtils } from '../filterconstraints/filterutils';
                     <ng-template ngFor let-item [ngForOf]="source" [ngForTrackBy]="sourceTrackBy || trackBy" let-i="index" let-l="last">
                         <li class="ui-picklist-droppoint" *ngIf="dragdrop" (dragover)="onDragOver($event, i, SOURCE_LIST)" (drop)="onDrop($event, i, SOURCE_LIST)" (dragleave)="onDragLeave($event, SOURCE_LIST)"
                         [ngClass]="{'ui-picklist-droppoint-highlight': (i === dragOverItemIndexSource)}" [style.display]="isItemVisible(item, SOURCE_LIST) ? 'block' : 'none'"></li>
-                        <li [ngClass]="{'ui-picklist-item':true,'ui-state-highlight':isSelected(item,selectedItemsSource), 'ui-state-disabled': disabled}"
+                        <li [ngClass]="{'ui-picklist-item':true,'ui-state-highlight':isSelected(item,selectedItemsSource), 'ui-state-disabled': disabled || item.disable}"
                             (click)="onItemClick($event,item,selectedItemsSource,onSourceSelect)" (dblclick)="onSourceItemDblClick()" (touchend)="onItemTouchEnd($event)" (keydown)="onItemKeydown($event,item,selectedItemsSource,onSourceSelect)"
                             [style.display]="isItemVisible(item, SOURCE_LIST) ? 'block' : 'none'" tabindex="0"
                             [draggable]="dragdrop" (dragstart)="onDragStart($event, i, SOURCE_LIST)" (dragend)="onDragEnd($event)">
@@ -102,6 +104,8 @@ export class PickList implements AfterViewChecked,AfterContentInit {
     @Input() responsive: boolean;
     
     @Input() filterBy: string;
+
+    @Input() isGreyOut: boolean;
 
     @Input() trackBy: Function = (index: number, item: any) => item;
 
@@ -456,7 +460,13 @@ export class PickList implements AfterViewChecked,AfterContentInit {
             for(let i = 0; i < this.selectedItemsSource.length; i++) {
                 let selectedItem = this.selectedItemsSource[i];
                 if(this.findIndexInList(selectedItem, this.target) == -1) {
-                    this.target.push(this.source.splice(this.findIndexInList(selectedItem, this.source),1)[0]);
+                    if (this.isGreyOut) {
+                        // tslint:disable-next-line: no-unused-expression
+                        this.source[this.findIndexInList(selectedItem, this.source)].disable = true;
+                        this.target.push(this.source[this.findIndexInList(selectedItem, this.source)]);
+                    } else {
+                        this.target.push(this.source.splice(this.findIndexInList(selectedItem, this.source),1)[0]);
+                    }
                 }
             }
             this.onMoveToTarget.emit({
@@ -469,13 +479,21 @@ export class PickList implements AfterViewChecked,AfterContentInit {
     moveAllRight() {
         if(this.source) {
             let movedItems = [];
-            
-            for(let i = 0; i < this.source.length; i++) {                
-                if(this.isItemVisible(this.source[i], this.SOURCE_LIST)) {
-                    let removedItem = this.source.splice(i, 1)[0];
-                    this.target.push(removedItem);
-                    movedItems.push(removedItem);
-                    i--;
+            for (let i = 0; i < this.source.length; i++) {
+                if (this.isItemVisible(this.source[i], this.SOURCE_LIST)) {
+                    let removedItem: any;
+                    if (this.isGreyOut) {
+                        // tslint:disable-next-line: no-unused-expression
+                        this.source[i].disable = true;
+                        removedItem = this.source[i];
+                        this.target.push(removedItem);
+                        movedItems.push(removedItem);
+                    } else {
+                        removedItem = this.source.splice(i, 1)[0];
+                        this.target.push(removedItem);
+                        movedItems.push(removedItem);
+                        i--;
+                    }
                 }
             }
                 
@@ -493,16 +511,21 @@ export class PickList implements AfterViewChecked,AfterContentInit {
 
     moveLeft() {
         if(this.selectedItemsTarget && this.selectedItemsTarget.length) {
-            for(let i = 0; i < this.selectedItemsTarget.length; i++) {
+            // tslint:disable-next-line: prefer-for-of
+            for (let i = 0; i < this.selectedItemsTarget.length; i++) {
                 let selectedItem = this.selectedItemsTarget[i];
-                if(this.findIndexInList(selectedItem, this.source) == -1) {
-                    this.source.push(this.target.splice(this.findIndexInList(selectedItem, this.target),1)[0]);
+                if (this.isGreyOut) {
+                    this.source[this.findIndexInList(selectedItem, this.source)].disable = false;
+                    this.target.splice(this.findIndexInList(selectedItem, this.target), 1);
+                } else {
+                    if (this.findIndexInList(selectedItem, this.source) === -1) {
+                        this.source.push(this.target.splice(this.findIndexInList(selectedItem, this.target), 1)[0]);
+                    }
                 }
             }
             this.onMoveToSource.emit({
                 items: this.selectedItemsTarget
             });
-            
             this.selectedItemsTarget = [];
         }
     }
@@ -510,16 +533,19 @@ export class PickList implements AfterViewChecked,AfterContentInit {
     moveAllLeft() {
         if(this.target) {
             let movedItems = [];
-            
-            for(let i = 0; i < this.target.length; i++) {                
+            for (let i = 0; i < this.target.length; i++) {
                 if(this.isItemVisible(this.target[i], this.TARGET_LIST)) {
-                    let removedItem = this.target.splice(i, 1)[0];
-                    this.source.push(removedItem);
+                    let removedItem: any;
+                    removedItem = this.target.splice(i, 1)[0];
+                    if (this.isGreyOut) {
+                        this.source[this.findIndexInList(removedItem, this.source)].disable = false;
+                    } else {
+                        this.source.push(removedItem);
+                    }
                     movedItems.push(removedItem);
                     i--;
                 }
             }
-    
             this.onMoveToSource.emit({
                 items: movedItems
             });

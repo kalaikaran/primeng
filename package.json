@@ -1,6 +1,6 @@
 {
-  "name": "primeng",
-  "version": "8.0.3-SNAPSHOT",
+  "name": "cust-primeng",
+  "version": "0.0.4",
   "license": "MIT",
   "scripts": {
     "ng": "ng",
@@ -8,11 +8,17 @@
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "version-refer": "8.0.3-SNAPSHOT",
+    "build-components": "ngc -p tsconfig-release.json",
+    "clean-assets": "gulp clean",
+    "build-assets": "gulp build-assets",
+    "build-styles": "node-sass src/assets/components -o src/assets/components",
+    "build-redistribute": "npm run build-components && npm run clean-assets && npm run build-assets && npm run build-styles"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/primefaces/primeng.git"
+    "url": "git+https://github.com/kalaikaran/primeng.git"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "~0.800.0",
@@ -32,9 +38,9 @@
     "@fullcalendar/daygrid": "4.1.0",
     "@fullcalendar/interaction": "4.1.0",
     "@fullcalendar/timegrid": "4.1.0",
-    "@types/node": "~8.9.4",
     "@types/jasmine": "~3.3.8",
     "@types/jasminewd2": "~2.0.3",
+    "@types/node": "~8.9.4",
     "chart.js": "2.7.3",
     "codelyzer": "^5.0.0",
     "del": "^2.2.0",
@@ -62,7 +68,20 @@
     "tslib": "^1.9.0",
     "tslint": "~5.15.0",
     "typescript": "~3.4.3",
-    "web-animations-js": "angular/web-animations-js#release_pr208",
+    "web-animations-js": "github:angular/web-animations-js#release_pr208",
     "zone.js": "~0.9.1"
+  },
+  "description": "[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Join the chat at https://gitter.im/primefaces/primeng](https://badges.gitter.im/primefaces/primeng.svg)](https://gitter.im/primefaces/primeng?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![npm version](https://badge.fury.io/js/primeng.svg)](https://badge.fury.io/js/primeng) [![Build Status](https://travis-ci.org/primefaces/primeng.svg?branch=master)](https://travis-ci.org/primefaces/primeng)",
+  "bugs": {
+    "url": "https://github.com/kalaikaran/primeng/issues"
+  },
+  "homepage": "https://github.com/kalaikaran/primeng#readme",
+  "main": "primeng.js",
+  "keywords": [
+    "customPrimng"
+  ],
+  "author": "Kalaikaran",
+  "dependencies": {
+    "node-sass": "^4.12.0"
   }
 }
